@@ -2,31 +2,30 @@ name: Build TimeTracker
 on: [push]
 jobs:
     build:
-      runs-on: windows-latest
-      steps:
-          - name: Install Qt
-            uses: jurplel/install-qt-action@v2
-            with:
-              version: '5.15.2'
-              host: 'windows'
-              target: 'desktop'
-              arch: 'win64_msvc2019_64'
-              dir: '${{ github.workspace }}/example/'
-              install-deps: 'true'
-              modules: 'qtcharts qtwebengine'
-              cached: 'false'
-              setup-python: 'true'
-              tools: 'tools_ifw tools_qtcreator,qt.tools.qtcreator'
-              set-env: 'false'
-              tools-only: 'false'
-              aqtversion: '==2.0.0'
-              py7zrversion: '==0.16.1'
-              extra: '--external 7z'
-          
-          -name: Ls
-            run: 
-              mkdir build
-              cd build
-              cmake ..
-              make
-              ls -l
+        runs-on: windows-latest
+        steps:
+            - name: Install Qt
+              uses: jurplel/install-qt-action@v2
+              with:
+                  version: "5.15.2"
+                  host: "windows"
+                  target: "desktop"
+                  arch: "win64_msvc2019_64"
+                  dir: "${{ github.workspace }}/example/"
+                  install-deps: "true"
+                  modules: "qtcharts qtwebengine"
+                  cached: "false"
+                  setup-python: "true"
+                  tools: "tools_ifw tools_qtcreator,qt.tools.qtcreator"
+                  set-env: "false"
+                  tools-only: "false"
+                  aqtversion: "==2.0.0"
+                  py7zrversion: "==0.16.1"
+                  extra: "--external 7z"
+
+            - name: Ls
+              run: mkdir build
+                  cd build
+                  cmake ..
+                  make
+                  ls -l
