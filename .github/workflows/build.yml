@@ -24,5 +24,4 @@ jobs:
                   extra: "--external 7z"
 
             - name: Ls
-              run: |
-                  mkdir build && cd build && cmake .. && cmake --build .
+              run: mkdir build && cd build && cmake .. && cmake --build .
