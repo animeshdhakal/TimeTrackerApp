@@ -19,7 +19,7 @@ class Login : public QMainWindow
     Q_OBJECT
 
 public:
-    Login(Store&, QWidget *parent = nullptr);
+    Login(Store&, Home&, QWidget *parent = nullptr);
     ~Login();
 
 private slots:
@@ -31,5 +31,6 @@ private:
     QNetworkAccessManager *manager;
     QNetworkRequest request;
     Store& store;
+    Home& home;
 };
 #endif // LOGIN_H

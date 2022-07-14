@@ -5,23 +5,33 @@
 #include <QImage>
 #include "home/home.h"
 #include "login/login.h"
+#include "activewindow/activewindow.h"
 
 int main(int argc, char *argv[])
 {
-    QApplication a(argc, argv);
-
-    QMainWindow* window;
+    QApplication app(argc, argv);
 
     Store store;
+    Home home(store);
+    Login login(store, home);
 
-    if(store.get("token").toString().isEmpty())
+
+    home.setFixedSize(home.size());
+    login.setFixedSize(login.size());
+
+    QList<WindowInfo> windows = ActiveWindow::getActiveWindows();
+
+    for(WindowInfo window : windows)
     {
-        window = new Login(store);
-    }else{
-        window = new Home(store);
+        qDebug() << window.getProcessName() << window.getWindowTitle() << window.getPID();
     }
 
-    window->show();
+    if(store.get("token").toString().isEmpty())
+    { 
+        login.show();
+    }else{
+        home.show();
+    }
     
-    return a.exec();
+    return app.exec();
 }

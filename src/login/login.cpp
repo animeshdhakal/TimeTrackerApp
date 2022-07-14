@@ -1,9 +1,9 @@
 #include "login.h"
 #include "./ui_login.h"
 
-Login::Login(Store& store, QWidget *parent)
+Login::Login(Store& store, Home& home, QWidget *parent)
     : QMainWindow(parent)
-    , ui(new Ui::Login), store(store)
+    , ui(new Ui::Login), store(store), home(home)
 {
     ui->setupUi(this);
 
@@ -29,14 +29,9 @@ void Login::onLoginResponse(QNetworkReply* reply)
     if(qStatusCode == 200){
         this->store.set("token", jsonObject["token"].toString());
 
-        Home* home = new Home(store);
-
-        home->setFixedSize(home->size());
+        this->close();
         
-        this->hide();
-
-        home->show();
-        
+        this->home.show();
     }else{
         QMessageBox::warning(this, "Login", jsonObject["message"].toString());
     }

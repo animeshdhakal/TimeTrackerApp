@@ -4,12 +4,15 @@ project(TimeTracker VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_FLAGS "-lX11")
+
 
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
@@ -25,7 +28,30 @@ set(PROJECT_SOURCES
         src/home/home.ui
         src/store/store.cpp
         src/store/store.h
+        src/activewindow/windowinfo.cpp
+        src/activewindow/windowinfo.h
+        src/activewindow/activewindow.cpp
+        src/activewindow/activewindow.h
 )
+
+if(WIN32)
+    set(PROJECT_SOURCES ${PROJECT_SOURCES}
+        src/activewindow/win.cpp
+        src/activewindow/win.h
+    )
+elseif(APPLE)
+    set(PROJECT_SOURCES ${PROJECT_SOURCES}
+        src/activewindow/mac.mm
+        src/activewindow/mac.h
+    )
+elseif(UNIX AND NOT APPLE)
+    set(PROJECT_SOURCES ${PROJECT_SOURCES}
+        src/activewindow/linux_x11.cpp
+        src/activewindow/linux_x11.h
+    )
+else()
+    message(FATAL_ERROR "Unsupported platform")
+endif()
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(TimeTracker
@@ -52,6 +78,19 @@ endif()
 
 target_link_libraries(TimeTracker PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 target_link_libraries(TimeTracker PRIVATE Qt6::Network)
+
+if(WIN32)
+    find_library(PSAPI REQUIRED)
+    target_link_libraries(TimeTracker PRIVATE PSAPI)
+elseif(APPLE)
+    set(CMAKE_CXX_FLAGS "-x objective-c++")
+    target_link_libraries(TimeTracker PRIVATE "-framework Cocoa")
+elseif(UNIX AND NOT APPLE)
+    find_package(X11 REQUIRED)
+    target_link_libraries(TimeTracker PRIVATE X11)
+else()
+    message(FATAL_ERROR "Unsupported platform")
+endif()
 
 set_target_properties(TimeTracker PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER my.example.com
