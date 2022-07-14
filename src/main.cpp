@@ -6,6 +6,8 @@
 #include "home/home.h"
 #include "login/login.h"
 #include "activewindow/activewindow.h"
+#include "idledetector/idle.h"
+#include <QTimer>
 
 int main(int argc, char *argv[])
 {
@@ -16,15 +18,19 @@ int main(int argc, char *argv[])
     Login login(store, home);
 
 
+    QTimer timer;
+
+    QObject::connect(&timer, &QTimer::timeout, [&]() {
+        int secondsIdle = Idle::getSystemIdleTime();
+        qDebug() << "secondsIdle: " << secondsIdle;
+    });
+
+    timer.start(1000);
+
     home.setFixedSize(home.size());
     login.setFixedSize(login.size());
 
-    QList<WindowInfo> windows = ActiveWindow::getActiveWindows();
-
-    for(WindowInfo window : windows)
-    {
-        qDebug() << window.getProcessName() << window.getWindowTitle() << window.getPID();
-    }
+    
 
     if(store.get("token").toString().isEmpty())
     { 

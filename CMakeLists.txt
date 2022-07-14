@@ -32,6 +32,8 @@ set(PROJECT_SOURCES
         src/activewindow/windowinfo.h
         src/activewindow/activewindow.cpp
         src/activewindow/activewindow.h
+        src/idledetector/idle.h
+        src/idledetector/idle_x11.cpp
 )
 
 if(WIN32)
@@ -86,6 +88,8 @@ elseif(APPLE)
     set(CMAKE_CXX_FLAGS "-x objective-c++")
     target_link_libraries(TimeTracker PRIVATE "-framework Cocoa")
 elseif(UNIX AND NOT APPLE)
+    find_package(X11 REQUIRED COMPONENTS Xss)
+    target_link_libraries(TimeTracker PRIVATE X11::Xss)
     find_package(X11 REQUIRED)
     target_link_libraries(TimeTracker PRIVATE X11)
 else()
