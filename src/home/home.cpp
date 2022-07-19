@@ -1,14 +1,276 @@
 #include "home.h"
 #include "ui_home.h"
 
-Home::Home(Store& store, QWidget *parent) :
-    QMainWindow(parent),
-    ui(new Ui::Home), store(store)
+Home::Home(Store &store, QWidget *parent) : QMainWindow(parent),
+                                            ui(new Ui::Home), store(store), secondsTime(QTime(0, 0)), activity(0), screenshotInterval(0)
 {
     ui->setupUi(this);
+}
+
+void Home::show()
+{
+    QNetworkRequest request;
+
+    QObject::connect(&secondsTimer, &QTimer::timeout, this, [&](){
+        secondsTime = secondsTime.addSecs(1);
+
+        ui->timer_label->setText(secondsTime.toString("hh:mm:ss"));
+
+        WindowInfo windowInfo = Activity::getActiveWindow();
+
+        if(apps.contains(windowInfo.getProcessName())){
+            apps[windowInfo.getProcessName()]++;
+        }else{
+            apps[windowInfo.getProcessName()] = 1;
+        }
+
+        if(Activity::getSystemIdleTime() == 0){
+            activity++;
+        } 
+    });
+    QObject::connect(&screenshotTimer, &QTimer::timeout, this, &Home::onScreenshotTimeout);
+
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+
+    request.setRawHeader("Authorization", "Bearer " + store.get("token").toString().toUtf8());
+    
+    request.setUrl(QUrl(store.get("server").toString() + "/api/project/all"));
+
+    QObject::connect(&manager, &QNetworkAccessManager::finished, this, &Home::onAllProjectsResponse);
+    QObject::connect(ui->projects, SIGNAL(currentIndexChanged(int)), this, SLOT(onSelectProject(int)));
+
+    manager.post(request, QByteArray());
+
+    QMainWindow::show();
 }
 
 Home::~Home()
 {
     delete ui;
+}
+
+void Home::on_timer_button_clicked()
+{
+    if (secondsTimer.isActive())
+    {
+        finishTimer();
+
+        secondsTimer.stop();
+
+        screenshotTimer.stop();
+        
+        ui->projects->setEnabled(true);
+
+        ui->timer_button->setText("Start");
+    }
+    else
+    {
+        startTimer();
+
+        secondsTimer.start(1000);
+        
+        screenshotTimer.start(screenshotInterval * 1000 * 60);
+
+        ui->projects->setDisabled(true);
+
+        ui->timer_button->setText("Stop");
+    }
+}
+
+void Home::startTimer()
+{
+    QNetworkRequest request;
+
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+
+    request.setRawHeader("Authorization", "Bearer " + store.get("token").toString().toUtf8());
+
+    request.setUrl(QUrl(store.get("server").toString() + "/api/activity/start"));
+
+    QObject::connect(&manager, &QNetworkAccessManager::finished, this, &Home::onStartFinishTimerResponse);
+
+    QJsonObject json;
+    json.insert("project_id", ui->projects->currentData().toInt());
+    QJsonDocument doc(json);
+
+    manager.post(request, doc.toJson());
+}
+
+void Home::finishTimer()
+{
+    QNetworkRequest request;
+
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+
+    request.setRawHeader("Authorization", "Bearer " + store.get("token").toString().toUtf8());
+
+    request.setUrl(QUrl(store.get("server").toString() + "/api/activity/finish"));
+
+    QObject::connect(&manager, &QNetworkAccessManager::finished, this, &Home::onStartFinishTimerResponse);
+
+    QJsonObject json;
+
+    json.insert("project_id", ui->projects->currentData().toInt());
+    json.insert("activity", floor(((float)activity / (float)QTime(0, 0).secsTo(secondsTime)) * 100.0f));
+
+    QJsonDocument doc(json);
+
+    manager.post(request, doc.toJson());
+}
+
+void Home::closeEvent(QCloseEvent *event)
+{
+    if(secondsTimer.isActive() && !isFinish){
+        event->ignore();
+        this->isFinish = true;
+        finishTimer();
+    }else{
+        event->accept();
+    }
+}
+
+void Home::onAllProjectsResponse(QNetworkReply *reply)
+{
+    QVariant qStatusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
+    int statusCode = qStatusCode.toInt();
+
+    QString json = reply->readAll();
+    QJsonDocument jsonDocument = QJsonDocument::fromJson(json.toUtf8());
+
+    if (statusCode == 200)
+    {
+        QJsonArray jsonArray = jsonDocument.array();
+        QJsonObject jsonObject;
+        for (int i = 0; i < jsonArray.size(); i++)
+        {
+            jsonObject = jsonArray.at(i).toObject();
+            ui->projects->addItem(jsonObject["name"].toString(), jsonObject["id"].toInt());
+        }
+    }
+    else
+    {
+        QMessageBox::critical(this, "Warning", jsonDocument.object()["message"].toString());
+    }
+
+
+    QObject::disconnect(&manager, &QNetworkAccessManager::finished, this, &Home::onAllProjectsResponse);
+}
+
+void Home::onStartFinishTimerResponse(QNetworkReply *reply)
+{
+    QVariant qStatusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
+    int statusCode = qStatusCode.toInt();
+    QString json = reply->readAll();
+    QJsonDocument jsonDocument = QJsonDocument::fromJson(json.toUtf8());
+    if (statusCode == 200)
+    {
+        QMessageBox::information(this, "Success", jsonDocument.object()["message"].toString());
+    }
+    else
+    {
+        QMessageBox::critical(this, "Warning", jsonDocument.object()["message"].toString());
+    }
+
+    QObject::disconnect(&manager, &QNetworkAccessManager::finished, this, &Home::onStartFinishTimerResponse);
+
+
+    if(isFinish){
+        QApplication::quit();
+    }
+}
+
+void Home::onGetProjectResponse(QNetworkReply* reply){
+    QString json = reply->readAll();
+    
+    QJsonDocument jsonDocument = QJsonDocument::fromJson(json.toUtf8());
+    QJsonObject jsonObject = jsonDocument.object();
+
+    screenshotInterval = jsonObject["screenshot_interval"].toInt();
+
+    QObject::disconnect(&manager, &QNetworkAccessManager::finished, this, &Home::onGetProjectResponse);
+
+    ui->timer_button->setEnabled(true);
+}
+
+void Home::onSelectProject(int index)
+{   
+    QNetworkRequest request;
+
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+
+    request.setRawHeader("Authorization", "Bearer " + store.get("token").toString().toUtf8());
+
+    ui->timer_button->setDisabled(true);
+
+    QJsonObject json;
+
+    json.insert("project_id", ui->projects->currentData().toInt());
+
+    QJsonDocument doc(json);
+
+    request.setUrl(QUrl(store.get("server").toString() + "/api/project/get"));
+
+    QObject::connect(&manager, &QNetworkAccessManager::finished, this, &Home::onGetProjectResponse);
+
+    manager.post(request, doc.toJson());
+}
+
+
+void Home::onScreenshotUploadResponse(QNetworkReply* reply){
+    QString json = reply->readAll();
+    
+    QJsonDocument jsonDocument = QJsonDocument::fromJson(json.toUtf8());
+
+    QJsonObject jsonObject = jsonDocument.object();
+    
+    QMessageBox::information(this, "Success", jsonObject["message"].toString());
+    
+    QObject::disconnect(&manager, &QNetworkAccessManager::finished, this, &Home::onScreenshotUploadResponse);
+}
+
+void Home::onScreenshotTimeout(){
+    QNetworkRequest request;
+
+    QHttpMultiPart* multiPart = new QHttpMultiPart(QHttpMultiPart::FormDataType);
+
+    QHttpPart projectIDPart;
+    projectIDPart.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("text/plain"));
+    projectIDPart.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"project_id\""));
+    projectIDPart.setBody(QString::number(ui->projects->currentData().toInt()).toUtf8());
+
+
+    QHttpPart activityPart;
+    activityPart.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("text/plain"));
+    activityPart.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"activity\""));
+    activityPart.setBody(QString::number(floor(((float)activity / (float)QTime(0, 0).secsTo(secondsTime)) * 100.0f)).toUtf8());
+
+    QScreen *screen = QGuiApplication::primaryScreen();
+    
+    QPixmap pixmap = screen->grabWindow(0);
+
+    QBuffer* buffer = new QBuffer();
+    buffer->open(QIODevice::WriteOnly);
+    pixmap.save(buffer, "JPG", 50);
+
+
+    QHttpPart imagePart;
+    imagePart.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("image/jpeg"));
+    imagePart.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"image\"; filename=\"screenshot.jpg\""));
+    imagePart.setBody(buffer->data());
+    
+    multiPart->append(imagePart);
+    multiPart->append(projectIDPart);
+    multiPart->append(activityPart);
+
+    request.setRawHeader("Authorization", "Bearer " + store.get("token").toString().toUtf8());
+
+    request.setUrl(QUrl("http://localhost:8080/api/upload"));
+
+    QObject::connect(&manager, &QNetworkAccessManager::finished, this, &Home::onScreenshotUploadResponse);
+
+    buffer->setParent(multiPart);
+
+    QNetworkReply* reply = manager.post(request, multiPart);
+
+    multiPart->setParent(reply);
 }

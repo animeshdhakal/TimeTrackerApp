@@ -28,7 +28,7 @@ private slots:
 
 private:
     Ui::Login *ui;
-    QNetworkAccessManager *manager;
+    QNetworkAccessManager manager;
     QNetworkRequest request;
     Store& store;
     Home& home;

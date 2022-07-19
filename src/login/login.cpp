@@ -7,15 +7,12 @@ Login::Login(Store& store, Home& home, QWidget *parent)
 {
     ui->setupUi(this);
 
-    this->manager = new QNetworkAccessManager();
-
-    QObject::connect(manager, &QNetworkAccessManager::finished, this, &Login::onLoginResponse);
+    QObject::connect(&manager, &QNetworkAccessManager::finished, this, &Login::onLoginResponse);
 }
 
 Login::~Login()
 {
     delete ui;
-    delete manager;
 }
 
 void Login::onLoginResponse(QNetworkReply* reply)
@@ -60,6 +57,6 @@ void Login::on_login_clicked()
 
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
-    manager->post(request, doc.toJson());
+    manager.post(request, doc.toJson());
 }
 

@@ -11,12 +11,14 @@ set(CMAKE_AUTORCC ON)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_FLAGS "-lX11")
 
 
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 find_package(Qt6 REQUIRED COMPONENTS Network)
+
+link_directories(${CMAKE_SOURCE_DIR}/lib)
+
 
 set(PROJECT_SOURCES
         src/main.cpp
@@ -28,28 +30,22 @@ set(PROJECT_SOURCES
         src/home/home.ui
         src/store/store.cpp
         src/store/store.h
-        src/activewindow/windowinfo.cpp
-        src/activewindow/windowinfo.h
-        src/activewindow/activewindow.cpp
-        src/activewindow/activewindow.h
-        src/idledetector/idle.h
-        src/idledetector/idle_x11.cpp
+        src/activity/windowinfo.cpp
+        src/activity/windowinfo.h
+        src/activity/activity.h
 )
 
 if(WIN32)
     set(PROJECT_SOURCES ${PROJECT_SOURCES}
-        src/activewindow/win.cpp
-        src/activewindow/win.h
+        src/activity/win.cpp
     )
 elseif(APPLE)
     set(PROJECT_SOURCES ${PROJECT_SOURCES}
-        src/activewindow/mac.mm
-        src/activewindow/mac.h
+        src/activity/mac.mm
     )
 elseif(UNIX AND NOT APPLE)
     set(PROJECT_SOURCES ${PROJECT_SOURCES}
-        src/activewindow/linux_x11.cpp
-        src/activewindow/linux_x11.h
+        src/activity/linux_x11.cpp
     )
 else()
     message(FATAL_ERROR "Unsupported platform")
@@ -80,17 +76,14 @@ endif()
 
 target_link_libraries(TimeTracker PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 target_link_libraries(TimeTracker PRIVATE Qt6::Network)
+target_link_directories(TimeTracker PRIVATE ${CMAKE_SOURCE_DIR}/lib)
 
-if(WIN32)
-    find_library(PSAPI REQUIRED)
-    target_link_libraries(TimeTracker PRIVATE PSAPI)
-elseif(APPLE)
+if(APPLE)
     set(CMAKE_CXX_FLAGS "-x objective-c++")
     target_link_libraries(TimeTracker PRIVATE "-framework Cocoa")
 elseif(UNIX AND NOT APPLE)
-    find_package(X11 REQUIRED COMPONENTS Xss)
-    target_link_libraries(TimeTracker PRIVATE X11::Xss)
     find_package(X11 REQUIRED)
+    target_link_libraries(TimeTracker PRIVATE X11::Xss)
     target_link_libraries(TimeTracker PRIVATE X11)
 else()
     message(FATAL_ERROR "Unsupported platform")
