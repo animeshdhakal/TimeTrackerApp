@@ -36,7 +36,6 @@ private:
     void finishTimer();
     void closeEvent(QCloseEvent *event);
 
-
 private slots:
     void on_timer_button_clicked();
     void onSelectProject(int index);
@@ -59,7 +58,7 @@ private:
     QTimer secondsTimer;
     QTime secondsTime;
     QNetworkAccessManager manager;
-    QMap <QString, int> apps;
+    QJsonArray apps;
 };
 
 #endif // HOME_H

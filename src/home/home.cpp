@@ -7,6 +7,7 @@ Home::Home(Store &store, QWidget *parent) : QMainWindow(parent),
     ui->setupUi(this);
 }
 
+
 void Home::show()
 {
     QNetworkRequest request;
@@ -18,10 +19,30 @@ void Home::show()
 
         WindowInfo windowInfo = Activity::getActiveWindow();
 
-        if(apps.contains(windowInfo.getProcessName())){
-            apps[windowInfo.getProcessName()]++;
-        }else{
-            apps[windowInfo.getProcessName()] = 1;
+        bool found = false;
+
+        for(int i = 0; i < apps.size(); i++)
+        {
+            QJsonObject app = apps[i].toObject();
+
+            if(app.value("name").toString() == windowInfo.getProcessName())
+            {
+                if(Activity::getSystemIdleTime() == 0){
+                    app.insert("activity", app.value("activity").toInt() + 1);
+                }
+                app.insert("time", app.value("time").toInt() + 1);
+                found = true;
+                apps[i] = app;
+            }
+        }
+
+        if(!found)
+        {
+            QJsonObject app;
+            app.insert("name", windowInfo.getProcessName());
+            app.insert("activity", Activity::getSystemIdleTime() == 0 ? 1 : 0);
+            app.insert("time", 1);
+            apps.append(app);
         }
 
         if(Activity::getSystemIdleTime() == 0){
@@ -93,7 +114,7 @@ void Home::startTimer()
     json.insert("project_id", ui->projects->currentData().toInt());
     QJsonDocument doc(json);
 
-    manager.post(request, doc.toJson());
+    manager.post(request, doc.toJson(QJsonDocument::Compact));
 }
 
 void Home::finishTimer()
@@ -112,10 +133,13 @@ void Home::finishTimer()
 
     json.insert("project_id", ui->projects->currentData().toInt());
     json.insert("activity", floor(((float)activity / (float)QTime(0, 0).secsTo(secondsTime)) * 100.0f));
+    json.insert("apps", apps);
+
+    apps = QJsonArray();
 
     QJsonDocument doc(json);
 
-    manager.post(request, doc.toJson());
+    manager.post(request, doc.toJson(QJsonDocument::Compact));
 }
 
 void Home::closeEvent(QCloseEvent *event)
@@ -212,7 +236,7 @@ void Home::onSelectProject(int index)
 
     QObject::connect(&manager, &QNetworkAccessManager::finished, this, &Home::onGetProjectResponse);
 
-    manager.post(request, doc.toJson());
+    manager.post(request, doc.toJson(QJsonDocument::Compact));
 }
 
 
@@ -264,7 +288,7 @@ void Home::onScreenshotTimeout(){
 
     request.setRawHeader("Authorization", "Bearer " + store.get("token").toString().toUtf8());
 
-    request.setUrl(QUrl("http://localhost:8080/api/upload"));
+    request.setUrl(QUrl(store.get("server").toString() + "/api/upload"));
 
     QObject::connect(&manager, &QNetworkAccessManager::finished, this, &Home::onScreenshotUploadResponse);
 

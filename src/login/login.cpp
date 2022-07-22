@@ -57,6 +57,6 @@ void Login::on_login_clicked()
 
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
-    manager.post(request, doc.toJson());
+    manager.post(request, doc.toJson(QJsonDocument::Compact));
 }
 

@@ -10,7 +10,6 @@
 #include <QHttpMultiPart>
 
 
-
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
@@ -28,6 +27,8 @@ int main(int argc, char *argv[])
     }else{
         home.show();
     }
+
+    qDebug() << store.get("server").toString();
 
     return app.exec();
 }
