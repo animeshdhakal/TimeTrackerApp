@@ -22,3 +22,9 @@ jobs:
               run: |
                   cmake -B build -DCMAKE_PREFIX_PATH=$Qt6_DIR
                   cmake --build build
+
+            - name: Upload build artifacts
+              uses: actions/upload-artifact@v3
+              with:
+                  name: TimeTracker
+                  path: build
