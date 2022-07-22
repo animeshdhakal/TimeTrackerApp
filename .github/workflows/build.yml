@@ -20,5 +20,5 @@ jobs:
 
             - name: Build Qt
               run: |
-                  cmake -B build -DCMAKE_PREFIX_PATH=${{ Qt6_DIR }}
+                  cmake -B build -DCMAKE_PREFIX_PATH=$Qt6_DIR
                   cmake --build build
