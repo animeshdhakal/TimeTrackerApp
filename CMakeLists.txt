@@ -76,9 +76,9 @@ endif()
 
 target_link_libraries(TimeTracker PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 target_link_libraries(TimeTracker PRIVATE Qt6::Network)
-target_link_directories(TimeTracker PRIVATE ${CMAKE_SOURCE_DIR}/lib)
 
-if(APPLE)
+if(WIN32)
+elseif(APPLE)
     set(CMAKE_CXX_FLAGS "-x objective-c++")
     target_link_libraries(TimeTracker PRIVATE "-framework Cocoa")
 elseif(UNIX AND NOT APPLE)
