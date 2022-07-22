@@ -1,0 +1,77 @@
+name: Build TimeTracker
+
+on: [push]
+
+jobs:
+    build-linux:
+        runs-on: linux-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v3
+
+            - name: Install Dependencies
+              run: |
+                  sudo apt update
+                  sudo apt install cmake libxss-dev libx11-dev
+
+            - name: Setup ccache
+              uses: Chocobo1/setup-ccache-action@v1
+              with:
+                  update_packager_index: false
+                  ccache_options: |
+                      max_size=2G
+
+            - name: Install Qt
+              uses: jurplel/install-qt-action@v3
+              with:
+                  version: 6.3.1
+
+            - name: Build Qt
+              run: |
+                  cmake -B build -DCMAKE_PREFIX_PATH=$Qt6_DIR
+                  cmake --build build
+
+            - name: Prepare build artifcats
+              run: \
+                  mkdir upload
+                  mv build/TimeTracker upload
+
+            - name: Upload build artifacts
+              uses: actions/upload-artifact@v3
+              with:
+                  name: TimeTracker-Linux
+                  path: upload
+
+    build-windows:
+        runs-on: windows-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v3
+
+            - name: Setup devcmd
+              uses: ilammy/msvc-dev-cmd@v1
+
+            - name: Install Qt
+              uses: jurplel/install-qt-action@v3
+              with:
+                  version: 6.3.1
+
+            - name: Build Qt
+              run: |
+                  cmake -B build -DCMAKE_PREFIX_PATH=$Qt6_DIR
+                  cmake --build build
+
+            - name: Prepare build artifacts
+              run: \
+                  mkdir upload
+                  copy "${{ env.Qt6_DIR }}/bin/Qt6Core.dll" upload
+                  copy "${{ env.Qt6_DIR }}/bin/Qt6Gui.dll" upload
+                  copy "${{ env.Qt6_DIR }}/bin/Qt6Network.dll" upload
+                  copy "${{ env.Qt6_DIR }}/bin/Qt6Widgets.dll" upload
+                  copy build/TimeTracker.exe upload
+
+            - name: Upload build artifacts
+              uses: actions/upload-artifact@v3
+              with:
+                  name: TimeTracker-Windows
+                  path: upload
