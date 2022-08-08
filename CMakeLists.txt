@@ -19,6 +19,7 @@ find_package(Qt6 REQUIRED COMPONENTS Network)
 
 link_directories(${CMAKE_SOURCE_DIR}/lib)
 
+file(COPY images DESTINATION ${CMAKE_BINARY_DIR})
 
 set(PROJECT_SOURCES
         src/main.cpp
@@ -33,19 +34,25 @@ set(PROJECT_SOURCES
         src/activity/windowinfo.cpp
         src/activity/windowinfo.h
         src/activity/activity.h
+        src/logger/logger.cpp
+        src/logger/logger.h
+        src/notification/notification.h
 )
 
 if(WIN32)
     set(PROJECT_SOURCES ${PROJECT_SOURCES}
         src/activity/win.cpp
+        src/notification/win_notification.cpp
     )
 elseif(APPLE)
     set(PROJECT_SOURCES ${PROJECT_SOURCES}
         src/activity/mac.mm
+        src/notification/mac_notification.cpp
     )
 elseif(UNIX AND NOT APPLE)
     set(PROJECT_SOURCES ${PROJECT_SOURCES}
         src/activity/linux_x11.cpp
+        src/notification/linux_notification.cpp
     )
 else()
     message(FATAL_ERROR "Unsupported platform")
@@ -82,9 +89,20 @@ elseif(APPLE)
     set(CMAKE_CXX_FLAGS "-x objective-c++")
     target_link_libraries(TimeTracker PRIVATE "-framework Cocoa")
 elseif(UNIX AND NOT APPLE)
+    include(FindPkgConfig)
+    pkg_check_modules(LIBNOTIFY REQUIRED libnotify)
+    pkg_check_modules(GLIB REQUIRED glib-2.0)
+
     find_package(X11 REQUIRED)
+
     target_link_libraries(TimeTracker PRIVATE X11::Xss)
     target_link_libraries(TimeTracker PRIVATE X11)
+    target_link_libraries(TimeTracker PRIVATE ${GLIB_LIBRARIES})
+    target_link_libraries(TimeTracker PRIVATE ${LIBNOTIFY_LIBRARIES})
+    target_link_libraries(TimeTracker PRIVATE ${GLIB_LIBRARIES})
+
+    target_include_directories(TimeTracker PRIVATE ${GLIB_INCLUDE_DIRS})
+    target_include_directories(TimeTracker PRIVATE ${LIBNOTIFY_INCLUDE_DIRS})
 else()
     message(FATAL_ERROR "Unsupported platform")
 endif()

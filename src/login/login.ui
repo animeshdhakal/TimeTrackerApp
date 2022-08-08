@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>316</width>
-    <height>239</height>
+    <height>323</height>
    </rect>
   </property>
   <property name="font">
@@ -37,13 +37,13 @@
    <bool>true</bool>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>50</x>
-      <y>20</y>
+      <y>10</y>
       <width>211</width>
-      <height>173</height>
+      <height>270</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -99,7 +99,40 @@
              <kerning>false</kerning>
             </font>
            </property>
+           <property name="echoMode">
+            <enum>QLineEdit::Password</enum>
+           </property>
           </widget>
+         </item>
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout_5">
+           <item>
+            <widget class="QLabel" name="label_3">
+             <property name="font">
+              <font>
+               <pointsize>13</pointsize>
+               <kerning>false</kerning>
+              </font>
+             </property>
+             <property name="text">
+              <string>Company ID</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="company_id">
+             <property name="font">
+              <font>
+               <pointsize>13</pointsize>
+               <kerning>false</kerning>
+              </font>
+             </property>
+             <property name="echoMode">
+              <enum>QLineEdit::Normal</enum>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </item>
         </layout>
        </item>
@@ -133,7 +166,7 @@
      <x>0</x>
      <y>0</y>
      <width>316</width>
-     <height>20</height>
+     <height>23</height>
     </rect>
    </property>
   </widget>

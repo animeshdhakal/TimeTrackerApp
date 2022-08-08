@@ -15,8 +15,15 @@
 #include <QList>
 #include <QScreen>
 #include <QHttpMultiPart>
+#include <QDateTime>
+#include <QSystemTrayIcon>
+#include <QMenu>
+#include <QHideEvent>
+#include "../login/login.h"
 #include "../store/store.h"
 #include "../activity/activity.h"
+#include "../logger/logger.h"
+#include "../notification/notification.h"
 
 namespace Ui {
 class Home;
@@ -35,9 +42,12 @@ private:
     void startTimer();
     void finishTimer();
     void closeEvent(QCloseEvent *event);
+    void hideEvent(QHideEvent *event);
+    void createSystemTray();
 
 private slots:
     void on_timer_button_clicked();
+    void on_signout_button_clicked();
     void onSelectProject(int index);
 
     void onScreenshotTimeout();
@@ -59,6 +69,8 @@ private:
     QTime secondsTime;
     QNetworkAccessManager manager;
     QJsonArray apps;
+    QSystemTrayIcon *trayIcon;
+    Logger log;
 };
 
 #endif // HOME_H

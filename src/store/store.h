@@ -5,6 +5,8 @@
 #include <QJsonValue>
 #include <QJsonDocument>
 #include <QFile>
+#include <QStandardPaths>
+#include <QDir>
 
 class Store {
     public:
@@ -13,6 +15,7 @@ class Store {
         QJsonValue get(QString);
         void clear(QString);
         void flush();
+        QString getStoreFilePath();
 
     private:
     QJsonObject store;

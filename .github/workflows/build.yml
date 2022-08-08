@@ -12,7 +12,7 @@ jobs:
             - name: Install Dependencies
               run: |
                   sudo apt update
-                  sudo apt install cmake libxss-dev libx11-dev
+                  sudo apt install cmake libxss-dev libx11-dev libnotify-dev libglib2.0-dev
 
             - name: Setup ccache
               uses: Chocobo1/setup-ccache-action@v1

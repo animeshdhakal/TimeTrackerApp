@@ -1,9 +1,20 @@
 #include "store.h"
 
 
+QString Store::getStoreFilePath(){
+    return QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/store.json";
+}
+
 Store::Store()
 {   
-    QFile file("store.json");
+    QFile file(getStoreFilePath());
+
+    QDir dir(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation));
+
+    if(!dir.exists())
+    {
+        dir.mkpath(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation));
+    }
     
     if(file.open(QIODevice::ReadOnly))
     {
@@ -17,7 +28,7 @@ Store::Store()
 
 
 void Store::flush(){
-    QFile file("store.json");
+    QFile file(getStoreFilePath());
 
     if(file.open(QIODevice::WriteOnly))
     {

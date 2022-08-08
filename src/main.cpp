@@ -8,27 +8,37 @@
 #include "activity/activity.h"
 #include <QTimer>
 #include <QHttpMultiPart>
-
+#include "logger/logger.h"
+#include "notification/notification.h"
 
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
 
+    Notification::init("TimeTracker");
+    app.setApplicationName("TimeTracker");
+
     Store store;
-    Home home(store);
-    Login login(store, home);
+    Logger log;
 
-    home.setFixedSize(home.size());
-    login.setFixedSize(login.size());
-
+    log.info("----------------------------------------------------");
+    
     if(store.get("token").toString().isEmpty())
     { 
-        login.show();
+        log.info("No Token Found, Opening Login Page");
+        Login* login = new Login(store);
+        login->setAttribute(Qt::WA_DeleteOnClose);
+        login->setFixedSize(login->size());
+        login->show();
     }else{
-        home.show();
+        log.info("Token Found, Opening Home Page");
+        Home* home = new Home(store);
+        home->setAttribute(Qt::WA_DeleteOnClose);
+        home->setFixedSize(home->size());
+        home->show();
     }
 
-    qDebug() << store.get("server").toString();
+
 
     return app.exec();
 }

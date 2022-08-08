@@ -9,6 +9,8 @@
 #include <QNetworkReply>
 #include "../home/home.h"
 #include "../store/store.h"
+#include "../logger/logger.h"
+#include "../notification/notification.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class Login; }
@@ -19,7 +21,7 @@ class Login : public QMainWindow
     Q_OBJECT
 
 public:
-    Login(Store&, Home&, QWidget *parent = nullptr);
+    Login(Store&, QWidget *parent = nullptr);
     ~Login();
 
 private slots:
@@ -31,6 +33,6 @@ private:
     QNetworkAccessManager manager;
     QNetworkRequest request;
     Store& store;
-    Home& home;
+    Logger log;
 };
 #endif // LOGIN_H

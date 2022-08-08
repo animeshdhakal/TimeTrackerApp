@@ -2,17 +2,18 @@
 #include "ui_home.h"
 
 Home::Home(Store &store, QWidget *parent) : QMainWindow(parent),
-                                            ui(new Ui::Home), store(store), secondsTime(QTime(0, 0)), activity(0), screenshotInterval(0)
+                                            ui(new Ui::Home), store(store), secondsTime(QTime(0, 0)), activity(0), screenshotInterval(0), trayIcon(nullptr)
 {
     ui->setupUi(this);
+    createSystemTray();
 }
-
 
 void Home::show()
 {
     QNetworkRequest request;
 
-    QObject::connect(&secondsTimer, &QTimer::timeout, this, [&](){
+    QObject::connect(&secondsTimer, &QTimer::timeout, this, [&]()
+                     {
         secondsTime = secondsTime.addSecs(1);
 
         ui->timer_label->setText(secondsTime.toString("hh:mm:ss"));
@@ -47,14 +48,13 @@ void Home::show()
 
         if(Activity::getSystemIdleTime() == 0){
             activity++;
-        } 
-    });
+        } });
     QObject::connect(&screenshotTimer, &QTimer::timeout, this, &Home::onScreenshotTimeout);
 
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
     request.setRawHeader("Authorization", "Bearer " + store.get("token").toString().toUtf8());
-    
+
     request.setUrl(QUrl(store.get("server").toString() + "/api/project/all"));
 
     QObject::connect(&manager, &QNetworkAccessManager::finished, this, &Home::onAllProjectsResponse);
@@ -68,34 +68,87 @@ void Home::show()
 Home::~Home()
 {
     delete ui;
+    delete trayIcon;
+}
+
+void Home::hideEvent(QHideEvent* event)
+{
+    this->hide();
+}
+
+void Home::createSystemTray(){
+    trayIcon = new QSystemTrayIcon(this);
+
+    QMenu* trayMenu = new QMenu(this);
+
+    trayIcon->setParent(trayMenu);
+    
+    trayIcon->setIcon(QIcon("images/icon.png"));
+
+    QAction *exitAction = new QAction(tr("Exit"), trayIcon);
+
+    QObject::connect(exitAction, &QAction::triggered, this, &Home::close);
+
+    QObject::connect(trayIcon, &QSystemTrayIcon::activated, this, [&](){
+        if(isVisible())
+        {
+            this->hide();
+        }
+        else
+        {
+            this->show();
+            this->activateWindow();
+        }
+    });
+
+    trayIcon->setParent(trayMenu);
+
+    trayMenu->addAction(exitAction);
+
+    trayIcon->setContextMenu(trayMenu);
+
+    trayIcon->show();
 }
 
 void Home::on_timer_button_clicked()
 {
     if (secondsTimer.isActive())
     {
+        log.info("Timer stopped");
+
         finishTimer();
 
         secondsTimer.stop();
 
         screenshotTimer.stop();
-        
+
         ui->projects->setEnabled(true);
 
         ui->timer_button->setText("Start");
     }
     else
     {
+        log.info("Timer started");
+
         startTimer();
 
         secondsTimer.start(1000);
-        
+
         screenshotTimer.start(screenshotInterval * 1000 * 60);
 
         ui->projects->setDisabled(true);
 
         ui->timer_button->setText("Stop");
     }
+}
+
+void Home::on_signout_button_clicked(){
+    store.clear("token");
+    this->close();
+    Login* login = new Login(store);
+    login->setFixedSize(login->size());
+    login->setAttribute(Qt::WA_DeleteOnClose);
+    login->show();
 }
 
 void Home::startTimer()
@@ -116,6 +169,7 @@ void Home::startTimer()
 
     manager.post(request, doc.toJson(QJsonDocument::Compact));
 }
+
 
 void Home::finishTimer()
 {
@@ -144,11 +198,14 @@ void Home::finishTimer()
 
 void Home::closeEvent(QCloseEvent *event)
 {
-    if(secondsTimer.isActive() && !isFinish){
+    if (secondsTimer.isActive() && !isFinish)
+    {
         event->ignore();
         this->isFinish = true;
         finishTimer();
-    }else{
+    }
+    else
+    {
         event->accept();
     }
 }
@@ -176,7 +233,6 @@ void Home::onAllProjectsResponse(QNetworkReply *reply)
         QMessageBox::critical(this, "Warning", jsonDocument.object()["message"].toString());
     }
 
-
     QObject::disconnect(&manager, &QNetworkAccessManager::finished, this, &Home::onAllProjectsResponse);
 }
 
@@ -188,7 +244,7 @@ void Home::onStartFinishTimerResponse(QNetworkReply *reply)
     QJsonDocument jsonDocument = QJsonDocument::fromJson(json.toUtf8());
     if (statusCode == 200)
     {
-        QMessageBox::information(this, "Success", jsonDocument.object()["message"].toString());
+        Notification::show("TimeTracker", jsonDocument.object()["message"].toString().toStdString().c_str());
     }
     else
     {
@@ -197,19 +253,40 @@ void Home::onStartFinishTimerResponse(QNetworkReply *reply)
 
     QObject::disconnect(&manager, &QNetworkAccessManager::finished, this, &Home::onStartFinishTimerResponse);
 
-
-    if(isFinish){
+    if (isFinish)
+    {
         QApplication::quit();
     }
 }
 
-void Home::onGetProjectResponse(QNetworkReply* reply){
+void Home::onGetProjectResponse(QNetworkReply *reply)
+{
     QString json = reply->readAll();
-    
+
     QJsonDocument jsonDocument = QJsonDocument::fromJson(json.toUtf8());
     QJsonObject jsonObject = jsonDocument.object();
 
     screenshotInterval = jsonObject["screenshot_interval"].toInt();
+
+    qint64 lastTimer = jsonObject["last_timer"].toInteger();
+
+    if (lastTimer != 0)
+    {
+        int time = (QDateTime::currentMSecsSinceEpoch() - lastTimer) / 1000;
+
+        secondsTime = QTime(0, 0).addSecs(time);
+
+        ui->timer_label->setText(secondsTime.toString("hh:mm:ss"));
+
+        secondsTimer.start(1000);
+
+        screenshotTimer.start(screenshotInterval * 1000 * 60);
+
+        ui->timer_button->setText("Stop");
+    }
+
+    log.info("Screenshot interval: " + QString::number(screenshotInterval));
+    log.info("Last timer: " + QString::number(lastTimer));
 
     QObject::disconnect(&manager, &QNetworkAccessManager::finished, this, &Home::onGetProjectResponse);
 
@@ -217,7 +294,9 @@ void Home::onGetProjectResponse(QNetworkReply* reply){
 }
 
 void Home::onSelectProject(int index)
-{   
+{
+    log.info("Project selected: " + ui->projects->currentData().toString());
+
     QNetworkRequest request;
 
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
@@ -239,29 +318,31 @@ void Home::onSelectProject(int index)
     manager.post(request, doc.toJson(QJsonDocument::Compact));
 }
 
-
-void Home::onScreenshotUploadResponse(QNetworkReply* reply){
+void Home::onScreenshotUploadResponse(QNetworkReply *reply)
+{
     QString json = reply->readAll();
-    
+
     QJsonDocument jsonDocument = QJsonDocument::fromJson(json.toUtf8());
 
     QJsonObject jsonObject = jsonDocument.object();
-    
-    QMessageBox::information(this, "Success", jsonObject["message"].toString());
-    
+
+    Notification::show("TimeTracker", "Screenshot Uploaded");
+
     QObject::disconnect(&manager, &QNetworkAccessManager::finished, this, &Home::onScreenshotUploadResponse);
 }
 
-void Home::onScreenshotTimeout(){
+void Home::onScreenshotTimeout()
+{   
+    log.info("Screenshot timeout");
+
     QNetworkRequest request;
 
-    QHttpMultiPart* multiPart = new QHttpMultiPart(QHttpMultiPart::FormDataType);
+    QHttpMultiPart *multiPart = new QHttpMultiPart(QHttpMultiPart::FormDataType);
 
     QHttpPart projectIDPart;
     projectIDPart.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("text/plain"));
     projectIDPart.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"project_id\""));
     projectIDPart.setBody(QString::number(ui->projects->currentData().toInt()).toUtf8());
-
 
     QHttpPart activityPart;
     activityPart.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("text/plain"));
@@ -269,19 +350,18 @@ void Home::onScreenshotTimeout(){
     activityPart.setBody(QString::number(floor(((float)activity / (float)QTime(0, 0).secsTo(secondsTime)) * 100.0f)).toUtf8());
 
     QScreen *screen = QGuiApplication::primaryScreen();
-    
+
     QPixmap pixmap = screen->grabWindow(0);
 
-    QBuffer* buffer = new QBuffer();
+    QBuffer *buffer = new QBuffer();
     buffer->open(QIODevice::WriteOnly);
     pixmap.save(buffer, "JPG", 50);
-
 
     QHttpPart imagePart;
     imagePart.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("image/jpeg"));
     imagePart.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"image\"; filename=\"screenshot.jpg\""));
     imagePart.setBody(buffer->data());
-    
+
     multiPart->append(imagePart);
     multiPart->append(projectIDPart);
     multiPart->append(activityPart);
@@ -294,7 +374,7 @@ void Home::onScreenshotTimeout(){
 
     buffer->setParent(multiPart);
 
-    QNetworkReply* reply = manager.post(request, multiPart);
+    QNetworkReply *reply = manager.post(request, multiPart);
 
     multiPart->setParent(reply);
 }
