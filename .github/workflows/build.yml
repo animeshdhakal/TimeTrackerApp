@@ -33,7 +33,7 @@ jobs:
                   cmake --build build
 
             - name: Prepare build artifcats
-              run: \
+              run: |
                   mkdir upload
                   mv build/TimeTracker upload
 
