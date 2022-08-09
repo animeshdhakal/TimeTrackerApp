@@ -1,6 +1,7 @@
 #include "notification.h"
 #include "wintoastlib.h"
 #include "../logger/logger.h"
+#include <QString>
 
 using namespace WinToastLib;
 

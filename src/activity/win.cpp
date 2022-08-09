@@ -1,52 +1,50 @@
 #include "activity.h"
 
-#ifdef Q_OS_WIN32
+#ifdef Q_OS_WIN
 
-#include <windows.h>
-#include <stringapiset.h>
-#include <codecvt>
-#include <string>
-#include <locale>
-
+#include <QtCore>
+#include "qt_windows.h"
+#include "psapi.h"
+#include "windowinfo.h"
 
 WindowInfo Activity::getActiveWindow(){
     WindowInfo windowInfo;
-    WCHAR window_title[256];
-	HWND foreground_window = GetForegroundWindow();
-	GetWindowTextW(foreground_window, window_title, 256);
 
-	std:setlocale(LC_ALL, "en_US.UTF-8");
+    TCHAR buf[255];
+    HWND foregroundWindow = GetForegroundWindow();
+    DWORD* processID = new DWORD;
+    GetWindowText(foregroundWindow, buf, 255);
+    GetWindowThreadProcessId(foregroundWindow, processID);
+    DWORD p = *processID;
+    HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION |
+                                  PROCESS_VM_READ,
+                                  FALSE, p);
+    TCHAR szProcessName[MAX_PATH];
 
-	DWORD pid;
-	GetWindowThreadProcessId(foreground_window, &pid);
-	// Process
-	TCHAR process_filename[MAX_PATH];
-	DWORD charsCarried = MAX_PATH;
+    if (NULL != hProcess )
+    {
+        HMODULE hMod;
+        DWORD cbNeeded;
 
-	HANDLE hProc = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION | PROCESS_QUERY_INFORMATION, false, pid);
+        if ( EnumProcessModules( hProcess, &hMod, sizeof(hMod),
+                                 &cbNeeded) )
+        {
+            GetModuleBaseName( hProcess, hMod, szProcessName,
+                               sizeof(szProcessName)/sizeof(TCHAR) );
+        }
+    }
+    CloseHandle(hProcess);
+    long pid = (long)p;
 
-	QueryFullProcessImageNameA(hProc, 0, process_filename, &charsCarried);
-
-    QString fullpath = QString::fromWCharArray(process_filename);
-
-	const qsizetype pos = fullpath.lastIndexOf("\\/");
-
-	if (pos != -1){
-		fullpath.erase(0, pos + 1);
-	}
-
-    
-
-    windowInfo.setWindowsTitle(QString::fromWCharArray(windows_title));
-    windowInfo.setProcessName(QString::fromStdString(fullpath));
+    windowInfo.setWindowTitle(QString::fromWCharArray(buf));
+    windowInfo.setProcessName(QString::fromWCharArray(szProcessName));
     windowInfo.setPID(pid);
-
 
     return windowInfo;
 }
 
 
-int Activity::getSystemIdeTime(){
+int Activity::getSystemIdleTime(){
     LASTINPUTINFO lastInputInfo;
     lastInputInfo.cbSize = sizeof(lastInputInfo);
     GetLastInputInfo(&lastInputInfo);

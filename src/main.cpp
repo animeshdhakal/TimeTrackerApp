@@ -21,6 +21,8 @@ int main(int argc, char *argv[])
     Store store;
     Logger log;
 
+    qDebug() << VERSION;
+
     log.info("----------------------------------------------------");
     
     if(store.get("token").toString().isEmpty())
