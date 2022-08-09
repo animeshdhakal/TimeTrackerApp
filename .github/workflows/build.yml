@@ -4,23 +4,14 @@ on: [push]
 
 jobs:
     build-linux:
-        runs-on: ubuntu-latest
+        runs-on: windows-latest
 
         steps:
             - name: Checkout repository
               uses: actions/checkout@v3
 
-            - name: Install Dependencies
-              run: |
-                  sudo apt update
-                  sudo apt install cmake libxss-dev libx11-dev libnotify-dev libglib2.0-dev
-
-            - name: Setup ccache
-              uses: Chocobo1/setup-ccache-action@v1
-              with:
-                  update_packager_index: false
-                  ccache_options: |
-                      max_size=2G
+            - name: Setup devcmd
+              uses: ilammy/msvc-dev-cmd@v1
 
             - name: Install Qt
               uses: jurplel/install-qt-action@v3
@@ -32,18 +23,6 @@ jobs:
                   cmake -B build -DCMAKE_PREFIX_PATH=$Qt6_DIR
                   cmake --build build
 
-            - name: Prepare build artifcats
+            - name: Prepare
               run: |
-                  cp images linux -r
-                  mv build/TimeTracker linux
-                  cd linux
-                  wget https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
-                  chmod +x linuxdeployqt-continuous-x86_64.AppImage
-                  ./linuxdeployqt-continuous-x86_64.AppImage TimeTracker -appimage
                   ls
-
-            - name: Upload build artifacts
-              uses: actions/upload-artifact@v3
-              with:
-                  name: TimeTracker-Linux
-                  path: upload
