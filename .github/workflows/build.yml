@@ -20,18 +20,13 @@ jobs:
 
             - name: Build Qt
               run: |
-                  cmake -B build -DCMAKE_PREFIX_PATH=$Qt6_DIR
+                  cmake -B build -DCMAKE_PREFIX_PATH=$Qt6_DIR -DCMAKE_BUILD_TYPE=Release
                   cmake --build build
 
             - name: Prepare
               run: |
-                  ls build
-                  ls build/images
-                  ls build/x64
-                  ls build/debug
-                  ls build/TimeTracker.dir
                   mkdir deployment
-                  mv build/TimeTracker.exe deployment/
+                  mv build/Release/TimeTracker.exe deployment/
                   mv build/images deployment/
                   cd deployment
                   windeployqt TimeTracker.exe
