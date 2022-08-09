@@ -5,6 +5,7 @@ on: [push]
 jobs:
     build-linux:
         runs-on: linux-latest
+
         steps:
             - name: Checkout repository
               uses: actions/checkout@v3
