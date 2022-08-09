@@ -36,14 +36,13 @@ class Home : public QMainWindow
 public:
     explicit Home(Store&, QWidget *parent = nullptr);
     ~Home();
-    void show();
 
 private:
     void startTimer();
     void finishTimer();
     void closeEvent(QCloseEvent *event);
-    void hideEvent(QHideEvent *event);
     void createSystemTray();
+    bool checkForNetworkError(QNetworkReply* reply);
 
 private slots:
     void on_timer_button_clicked();

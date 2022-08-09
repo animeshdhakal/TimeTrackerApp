@@ -5,11 +5,9 @@ Home::Home(Store &store, QWidget *parent) : QMainWindow(parent),
                                             ui(new Ui::Home), store(store), secondsTime(QTime(0, 0)), activity(0), screenshotInterval(0), trayIcon(nullptr)
 {
     ui->setupUi(this);
+    
     createSystemTray();
-}
 
-void Home::show()
-{
     QNetworkRequest request;
 
     QObject::connect(&secondsTimer, &QTimer::timeout, this, [&]()
@@ -48,7 +46,9 @@ void Home::show()
 
         if(Activity::getSystemIdleTime() == 0){
             activity++;
-        } });
+        } 
+    });
+    
     QObject::connect(&screenshotTimer, &QTimer::timeout, this, &Home::onScreenshotTimeout);
 
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
@@ -61,9 +61,8 @@ void Home::show()
     QObject::connect(ui->projects, SIGNAL(currentIndexChanged(int)), this, SLOT(onSelectProject(int)));
 
     manager.post(request, QByteArray());
-
-    QMainWindow::show();
 }
+
 
 Home::~Home()
 {
@@ -71,9 +70,22 @@ Home::~Home()
     delete trayIcon;
 }
 
-void Home::hideEvent(QHideEvent* event)
-{
-    this->hide();
+
+bool Home::checkForNetworkError(QNetworkReply* reply){
+    switch(reply->error()){
+        case QNetworkReply::NetworkError::HostNotFoundError:
+            log.error("No Internet Connection " + reply->errorString());
+            Notification::show("TimeTracker", "No Internet Connection. Stopping Timers");
+            screenshotTimer.stop();
+            secondsTimer.stop();
+            secondsTime = QTime(0, 0);
+            ui->timer_label->setText("No Internet");
+            ui->timer_button->setDisabled(true);
+            ui->timer_button->setText("Start");
+            return true;
+        default:
+            return false;
+    }
 }
 
 void Home::createSystemTray(){
@@ -164,7 +176,9 @@ void Home::startTimer()
     QObject::connect(&manager, &QNetworkAccessManager::finished, this, &Home::onStartFinishTimerResponse);
 
     QJsonObject json;
+    
     json.insert("project_id", ui->projects->currentData().toInt());
+    
     QJsonDocument doc(json);
 
     manager.post(request, doc.toJson(QJsonDocument::Compact));
@@ -212,10 +226,16 @@ void Home::closeEvent(QCloseEvent *event)
 
 void Home::onAllProjectsResponse(QNetworkReply *reply)
 {
+    if(checkForNetworkError(reply)){
+        return;
+    }
+
     QVariant qStatusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
+    
     int statusCode = qStatusCode.toInt();
 
     QString json = reply->readAll();
+    
     QJsonDocument jsonDocument = QJsonDocument::fromJson(json.toUtf8());
 
     if (statusCode == 200)
@@ -238,10 +258,18 @@ void Home::onAllProjectsResponse(QNetworkReply *reply)
 
 void Home::onStartFinishTimerResponse(QNetworkReply *reply)
 {
+    if(checkForNetworkError(reply)){
+        return;
+    }
+
     QVariant qStatusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
+    
     int statusCode = qStatusCode.toInt();
+    
     QString json = reply->readAll();
+    
     QJsonDocument jsonDocument = QJsonDocument::fromJson(json.toUtf8());
+    
     if (statusCode == 200)
     {
         Notification::show("TimeTracker", jsonDocument.object()["message"].toString().toStdString().c_str());
@@ -261,9 +289,14 @@ void Home::onStartFinishTimerResponse(QNetworkReply *reply)
 
 void Home::onGetProjectResponse(QNetworkReply *reply)
 {
+    if(checkForNetworkError(reply)){
+        return;
+    }
+
     QString json = reply->readAll();
 
     QJsonDocument jsonDocument = QJsonDocument::fromJson(json.toUtf8());
+    
     QJsonObject jsonObject = jsonDocument.object();
 
     screenshotInterval = jsonObject["screenshot_interval"].toInt();
@@ -286,6 +319,7 @@ void Home::onGetProjectResponse(QNetworkReply *reply)
     }
 
     log.info("Screenshot interval: " + QString::number(screenshotInterval));
+    
     log.info("Last timer: " + QString::number(lastTimer));
 
     QObject::disconnect(&manager, &QNetworkAccessManager::finished, this, &Home::onGetProjectResponse);
@@ -319,7 +353,11 @@ void Home::onSelectProject(int index)
 }
 
 void Home::onScreenshotUploadResponse(QNetworkReply *reply)
-{
+{   
+    if(checkForNetworkError(reply)){
+        return;
+    }
+
     QString json = reply->readAll();
 
     QJsonDocument jsonDocument = QJsonDocument::fromJson(json.toUtf8());
