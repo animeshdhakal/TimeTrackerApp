@@ -3,7 +3,7 @@ name: Build TimeTracker
 on: [push]
 
 jobs:
-    build-linux:
+    build-windows:
         runs-on: windows-latest
 
         steps:
@@ -26,9 +26,13 @@ jobs:
             - name: Prepare
               run: |
                   mkdir deployment
-                  ls build
                   mv build/Release/TimeTracker.exe deployment/
                   mv build/images deployment/
                   cd deployment
                   windeployqt TimeTracker.exe
-                  ls
+
+            - name: Upload build artifacts
+              uses: actions/upload-artifact@v3
+              with:
+                  name: TimeTracker-Windows
+                  path: deployment
