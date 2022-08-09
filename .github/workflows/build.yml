@@ -26,6 +26,7 @@ jobs:
             - name: Prepare
               run: |
                   mkdir deployment
+                  ls build
                   mv build/Release/TimeTracker.exe deployment/
                   mv build/images deployment/
                   cd deployment
