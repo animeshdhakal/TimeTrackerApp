@@ -29,7 +29,7 @@ jobs:
                   mv build/Release/TimeTracker.exe deployment/
                   mv build/images deployment/
                   cd deployment
-                  windeployqt TimeTracker.exe
+                  windeployqt TimeTracker.exe --no-translations --no-opengl-sw --no-quick-import --no-webkit2 --no-angle
 
             - name: Upload build artifacts
               uses: actions/upload-artifact@v3
