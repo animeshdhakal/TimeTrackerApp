@@ -25,4 +25,9 @@ jobs:
 
             - name: Prepare
               run: |
+                  mkdir deployment
+                  mv build/TimeTracker.exe deployment/
+                  mv build/images deployment/
+                  cd deployment
+                  windeployqt TimeTracker.exe
                   ls

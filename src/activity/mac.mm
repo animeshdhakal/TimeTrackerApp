@@ -1,7 +1,5 @@
 #include "activity.h"
 
-#ifdef Q_OS_MAC
-
 
 WindowInfo getActiveWindow(){
     // get frontmost process for currently active application
@@ -83,5 +81,3 @@ int Activity::getSystemIdleTime()
 
     return idleSeconds;
 }
-
-#endif

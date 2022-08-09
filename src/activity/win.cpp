@@ -1,7 +1,4 @@
 #include "activity.h"
-
-#ifdef Q_OS_WIN
-
 #include <QtCore>
 #include "qt_windows.h"
 #include "psapi.h"
@@ -50,5 +47,3 @@ int Activity::getSystemIdleTime(){
     GetLastInputInfo(&lastInputInfo);
     return (GetTickCount() - lastInputInfo.dwTime) / 1000;
 }
-
-#endif

@@ -1,7 +1,4 @@
 #include "activity.h"
-
-#ifdef Q_OS_LINUX
-
 #include <sstream>
 #include <stdlib.h>
 #include <stdio.h>
@@ -105,6 +102,3 @@ int Activity::getSystemIdleTime()
     XCloseDisplay(display); 
     return idleTime;
 }
-
-
-#endif
