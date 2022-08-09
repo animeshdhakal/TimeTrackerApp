@@ -34,8 +34,12 @@ jobs:
 
             - name: Prepare build artifcats
               run: |
-                  mkdir upload
-                  mv build/TimeTracker upload
+                  cp images linux -r
+                  mv build/TimeTracker linux
+                  cd linux
+                  wget https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
+                  ./linuxdeployqt-continuous-x86_64.AppImage TimeTracker
+                  ls
 
             - name: Upload build artifacts
               uses: actions/upload-artifact@v3
