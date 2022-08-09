@@ -26,6 +26,10 @@ jobs:
             - name: Prepare
               run: |
                   ls build
+                  ls build/images
+                  ls build/x64
+                  ls build/debug
+                  ls build/TimeTracker.dir
                   mkdir deployment
                   mv build/TimeTracker.exe deployment/
                   mv build/images deployment/
