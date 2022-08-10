@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>TimeTracker - Home</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QLabel" name="timer_label">

@@ -22,7 +22,7 @@
    <enum>Qt::NoContextMenu</enum>
   </property>
   <property name="windowTitle">
-   <string>Login</string>
+   <string>TimeTracker - Login</string>
   </property>
   <property name="autoFillBackground">
    <bool>true</bool>
