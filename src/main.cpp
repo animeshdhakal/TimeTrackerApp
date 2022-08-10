@@ -10,18 +10,22 @@
 #include <QHttpMultiPart>
 #include "logger/logger.h"
 #include "notification/notification.h"
+#include "updatechecker/updatechecker.h"
 
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
 
+    app.setWindowIcon(QIcon("images/icon.png"));
+
     Notification::init("TimeTracker");
     app.setApplicationName("TimeTracker");
 
+    UpdateChecker updateChecker;
+    updateChecker.checkForUpdate();
+
     Store store;
     Logger log;
-
-    qDebug() << VERSION;
 
     log.info("----------------------------------------------------");
     
@@ -39,8 +43,6 @@ int main(int argc, char *argv[])
         home->setFixedSize(home->size());
         home->show();
     }
-
-
 
     return app.exec();
 }

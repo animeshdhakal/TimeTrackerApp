@@ -80,7 +80,11 @@ void Login::on_login_clicked()
         return;
     }
 
-    request.setUrl(QUrl("http://timetracker.orcacorp.net.au/getserver/"+ui->company_id->text()));
+    QUrl url(SERVER_URL);
+
+    url.setPath("/getserver/"+ui->company_id->text());
+
+    request.setUrl(url);
 
     manager.get(request);
 }

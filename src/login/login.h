@@ -11,6 +11,7 @@
 #include "../store/store.h"
 #include "../logger/logger.h"
 #include "../notification/notification.h"
+#include "../definations.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class Login; }

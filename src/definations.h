@@ -1,0 +1,1 @@
+#define SERVER_URL "http://timetracker.orcacorp.net.au"

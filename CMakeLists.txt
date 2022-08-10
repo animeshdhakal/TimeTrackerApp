@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(TimeTracker VERSION 0.1 LANGUAGES CXX)
+project(TimeTracker VERSION 0.0.1 LANGUAGES CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -35,6 +35,9 @@ set(PROJECT_SOURCES
     src/logger/logger.cpp
     src/logger/logger.h
     src/notification/notification.h
+    src/updatechecker/updatechecker.cpp
+    src/updatechecker/updatechecker.h
+    src/definations.h
 )
 
 if(WIN32)
@@ -84,7 +87,7 @@ endif()
 
 target_link_libraries(TimeTracker PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 target_link_libraries(TimeTracker PRIVATE Qt6::Network)
-target_compile_definitions(TimeTracker PUBLIC VERSION=${PROJECT_VERSION})
+target_compile_definitions(TimeTracker PUBLIC VERSION="${PROJECT_VERSION}")
 
 if(WIN32)
 elseif(APPLE)
