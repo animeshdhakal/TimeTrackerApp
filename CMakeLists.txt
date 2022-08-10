@@ -43,6 +43,7 @@ if(WIN32)
         src/notification/win_notification.cpp
         src/notification/wintoastlib.h
         src/notification/wintoastlib.cpp
+        src/TimeTracker.rc
     )
 elseif(APPLE)
     set(PROJECT_SOURCES ${PROJECT_SOURCES}
