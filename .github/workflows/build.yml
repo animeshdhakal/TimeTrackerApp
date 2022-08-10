@@ -22,7 +22,7 @@ jobs:
               run: |
                   cmake -B build -DCMAKE_PREFIX_PATH=$Qt6_DIR
                   cmake --build build --config Release
-        
+
             - name: Prepare
               run: |
                   mkdir deployment
@@ -30,12 +30,10 @@ jobs:
                   mv build/images deployment/
                   cd deployment
                   windeployqt TimeTracker.exe --release --no-compiler-runtime --no-translations --no-opengl-sw
-                  if "%NSIS_DIR%"=="" set NSIS_DIR=C:\Program Files (x86)\NSIS
-                  set PATH=%NSIS_DIR%;%PATH%
-                  cd ../scripts/post-windows/
-                  makensis.exe /X"SetCompressor /FINAL lzma" /V4 installer.nsi
-                  cd ../../
-                  
+                  pushd "${{ github.workspace }}\scripts"
+                  build-setup-win.bat
+              shell: cmd
+
             - name: Upload build artifacts
               uses: actions/upload-artifact@v3
               with:
