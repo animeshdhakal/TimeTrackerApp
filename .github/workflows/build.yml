@@ -71,8 +71,8 @@ jobs:
 
             - name: Prepare build artifcats
               run: |
-                  mkdir upload
-                  mv build/TimeTracker upload
+                  mkdir appdir
+                  mv build/TimeTracker appdir
 
             - name: Build AppImage
               run: |
