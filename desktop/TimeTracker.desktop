@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=TimeTracker
+Comment=TimeTracking Software
+Exec=TimeTracker
+Icon=TimeTracker
+Terminal=false
+Categories=Office;
+StartupWMClass=TimeTracker

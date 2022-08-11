@@ -76,6 +76,7 @@ jobs:
 
             - name: Build AppImage
               run: |
+                  chmod a+x scripts/build-app-image.sh
                   ./scripts/build-app-image.sh
 
             - name: Upload build artifacts
