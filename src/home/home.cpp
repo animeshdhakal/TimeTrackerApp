@@ -71,6 +71,14 @@ Home::~Home()
 }
 
 
+void Home::changeEvent(QEvent *event)
+{
+    if(event->type() == QEvent::WindowStateChange && (this->windowState() & Qt::WindowMinimized))
+    {
+        this->hide();
+    }
+}
+
 bool Home::checkForNetworkError(QNetworkReply* reply){
     switch(reply->error()){
         case QNetworkReply::NetworkError::HostNotFoundError:
@@ -102,14 +110,13 @@ void Home::createSystemTray(){
     QObject::connect(exitAction, &QAction::triggered, this, &Home::close);
 
     QObject::connect(trayIcon, &QSystemTrayIcon::activated, this, [&](){
-        if(isVisible())
-        {
-            this->hide();
-        }
-        else
-        {
+        if(this->windowState() & Qt::WindowMinimized){
+            this->setWindowState(Qt::WindowActive);
             this->show();
             this->activateWindow();
+        }else if(this->windowState() & Qt::WindowActive){
+            this->setWindowState(Qt::WindowMinimized);
+            this->hide();
         }
     });
 
@@ -156,7 +163,9 @@ void Home::on_timer_button_clicked()
 
 void Home::on_signout_button_clicked(){
     store.clear("token");
+
     this->close();
+    
     Login* login = new Login(store);
     login->setFixedSize(login->size());
     login->setAttribute(Qt::WA_DeleteOnClose);

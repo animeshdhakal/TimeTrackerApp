@@ -43,6 +43,7 @@ private:
     void closeEvent(QCloseEvent *event);
     void createSystemTray();
     bool checkForNetworkError(QNetworkReply* reply);
+    void changeEvent(QEvent *event);
 
 private slots:
     void on_timer_button_clicked();
@@ -59,6 +60,7 @@ private slots:
 
 private:
     bool isFinish = false;
+    bool isMinimized = false;
     int activity;
     int screenshotInterval;
     Ui::Home *ui;
