@@ -1,41 +1,35 @@
 #include "activity.h"
 #include <QtCore>
-#include "qt_windows.h"
-#include "psapi.h"
-#include "windowinfo.h"
+#include <windows.h>
+#pragma comment(lib, "user32.lib")
 
 WindowInfo Activity::getActiveWindow(){
     WindowInfo windowInfo;
 
-    TCHAR buf[255];
-    HWND foregroundWindow = GetForegroundWindow();
-    DWORD* processID = new DWORD;
-    GetWindowText(foregroundWindow, buf, 255);
-    GetWindowThreadProcessId(foregroundWindow, processID);
-    DWORD p = *processID;
-    HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION |
-                                  PROCESS_VM_READ,
-                                  FALSE, p);
-    TCHAR szProcessName[MAX_PATH];
-
-    if (NULL != hProcess )
-    {
-        HMODULE hMod;
-        DWORD cbNeeded;
-
-        if ( EnumProcessModules( hProcess, &hMod, sizeof(hMod),
-                                 &cbNeeded) )
-        {
-            GetModuleBaseName( hProcess, hMod, szProcessName,
-                               sizeof(szProcessName)/sizeof(TCHAR) );
+    HWND hwnd = GetForegroundWindow();
+    if (hwnd) {
+        DWORD maxPath = MAX_PATH;
+        wchar_t app_path[MAX_PATH];
+        DWORD pid;
+        GetWindowThreadProcessId(hwnd, &pid);
+        HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, pid);
+        if (hProcess) {
+            QueryFullProcessImageName(hProcess, 0, app_path, &maxPath);
+            CloseHandle(hProcess);
+            QString appPath = QString::fromWCharArray(app_path).trimmed();
+            QFileInfo appFileInfo(appPath);
+            QString fileName = appFileInfo.baseName();
+            if(fileName.isEmpty()){
+                fileName = "Unknown App";
+            }
+            windowInfo.setProcessName(fileName);
         }
-    }
-    CloseHandle(hProcess);
-    long pid = (long)p;
 
-    windowInfo.setWindowTitle(QString::fromWCharArray(buf));
-    windowInfo.setProcessName(QString::fromWCharArray(szProcessName));
-    windowInfo.setPID(pid);
+        wchar_t wnd_title[256];
+        GetWindowText(hwnd, wnd_title, sizeof(wnd_title));
+        windowInfo.setWindowTitle(QString::fromWCharArray(wnd_title));
+        windowInfo.setPID(pid);
+    }
 
     return windowInfo;
 }
