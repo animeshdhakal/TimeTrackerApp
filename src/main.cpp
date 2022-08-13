@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
 
-    app.setWindowIcon(QIcon("images/icon.png"));
+    app.setWindowIcon(QIcon("images/icon.ico"));
 
     Notification::init("TimeTracker");
     app.setApplicationName("TimeTracker");

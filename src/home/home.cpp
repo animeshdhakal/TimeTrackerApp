@@ -325,6 +325,10 @@ void Home::onGetProjectResponse(QNetworkReply *reply)
         screenshotTimer.start(screenshotInterval * 1000 * 60);
 
         ui->timer_button->setText("Stop");
+    }else{
+        secondsTime = QTime(0, 0);
+
+        ui->timer_label->setText(secondsTime.toString("hh:mm:ss"));
     }
 
     log.info("Screenshot interval: " + QString::number(screenshotInterval));
