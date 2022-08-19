@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>316</width>
-    <height>323</height>
+    <width>294</width>
+    <height>291</height>
    </rect>
   </property>
   <property name="font">
@@ -40,8 +40,8 @@
    <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
-      <x>50</x>
-      <y>10</y>
+      <x>40</x>
+      <y>-20</y>
       <width>211</width>
       <height>270</height>
      </rect>
@@ -51,6 +51,19 @@
       <layout class="QVBoxLayout" name="verticalLayout_3">
        <item>
         <layout class="QVBoxLayout" name="verticalLayout">
+         <item>
+          <widget class="QLabel" name="label_4">
+           <property name="font">
+            <font>
+             <pointsize>13</pointsize>
+             <kerning>false</kerning>
+            </font>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
          <item>
           <widget class="QLabel" name="label">
            <property name="font">
@@ -165,8 +178,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>316</width>
-     <height>23</height>
+     <width>294</width>
+     <height>20</height>
     </rect>
    </property>
   </widget>
