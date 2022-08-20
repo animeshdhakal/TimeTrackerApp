@@ -1,3 +1,4 @@
+#pragma once
 #include "wintoastlib.h"
 #include <memory>
 #include <assert.h>

@@ -103,6 +103,6 @@ int Activity::getSystemIdleTime()
     return idleTime;
 }
 
-void setIcon(){
-    
+void Activity::setIcon(){
+
 }
