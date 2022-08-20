@@ -44,6 +44,7 @@ int Activity::getSystemIdleTime(){
 
 void Activity::setIcon(){
     HINSTANCE hInstance = (HINSTANCE)::GetModuleHandle(NULL);
+    HWND hWnd = GetForegroundWindow();
     HICON hIcon = LoadIcon(hInstance, MAKEINTRESOURCE("images/icon.ico"));
     SendMessage(hWnd, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
     SendMessage(hWnd, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
