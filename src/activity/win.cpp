@@ -43,7 +43,17 @@ int Activity::getSystemIdleTime(){
 }
 
 void Activity::setIcon(){
-    HICON hIcon = LoadIcon(hInstance, MAKEINTRESOURCE("images/icon.ico"));
-    SendMessage(hWnd, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
-    SendMessage(hWnd, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+    WNDCLASSEX wcex = {}; 
+    wcex.cbSize = sizeof(WNDCLASSEX);
+    wcex.style = CS_HREDRAW | CS_VREDRAW;
+    wcex.lpfnWndProc = WndProc;
+    wcex.cbClsExtra = 0;
+    wcex.cbWndExtra = 0;
+    wcex.hInstance = hInstance;
+    wcex.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE("images/icon.ico"));
+    wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
+    wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+    wcex.lpszMenuName = nullptr;
+    wcex.lpszClassName = "app.timetracker";
+    wcex.hIconSm = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_APPLICATION));
 }
