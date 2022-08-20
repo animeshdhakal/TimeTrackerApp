@@ -38,7 +38,7 @@ jobs:
               uses: actions/upload-artifact@v3
               with:
                   name: TimeTracker-Windows
-                  path: TimeTracker-Installer*.exe
+                  path: setup.exe
 
     build-linux:
         runs-on: ubuntu-20.04
