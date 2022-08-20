@@ -1,4 +1,3 @@
-#pragma once
 #include "wintoastlib.h"
 #include <memory>
 #include <assert.h>
@@ -8,7 +7,9 @@
 #pragma comment(lib,"shlwapi")
 #pragma comment(lib,"user32")
 
+#ifndef NDEBUG
 #define NDEBUG
+#endif
 
 #ifdef NDEBUG
     #define DEBUG_MSG(str) do { } while ( false )

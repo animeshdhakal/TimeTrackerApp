@@ -1,5 +1,6 @@
 #ifndef WINTOASTLIB_H
 #define WINTOASTLIB_H
+
 #include <Windows.h>
 #include <sdkddkver.h>
 #include <WinUser.h>
@@ -18,6 +19,8 @@
 #include <string.h>
 #include <vector>
 #include <map>
+
+
 using namespace Microsoft::WRL;
 using namespace ABI::Windows::Data::Xml::Dom;
 using namespace ABI::Windows::Foundation;
