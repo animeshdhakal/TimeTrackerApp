@@ -41,3 +41,9 @@ int Activity::getSystemIdleTime(){
     GetLastInputInfo(&lastInputInfo);
     return (GetTickCount() - lastInputInfo.dwTime) / 1000;
 }
+
+void Activity::setIcon(){
+    HICON hIcon = LoadIcon(hInstance, MAKEINTRESOURCE("images/icon.ico"));
+    SendMessage(hWnd, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
+    SendMessage(hWnd, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+}
