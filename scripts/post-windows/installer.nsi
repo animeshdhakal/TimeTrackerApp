@@ -5,7 +5,7 @@
 
 NAME "TimeTracker"
 
-OutFile "..\..\TimeTracker-Installer.exe"
+OutFile "..\..\setup.exe"
 
 InstallDir "$PROGRAMFILES\TimeTracker"
 
