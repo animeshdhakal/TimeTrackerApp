@@ -19,10 +19,10 @@ int main(int argc, char *argv[])
     Notification::init("TimeTracker");
     app.setApplicationName("TimeTracker");
 
-    #ifndef Q_OS_WIN
+    #ifdef Q_OS_WIN
         #include <winuser.h>
         #include <windows.h>
-        
+
         HICON hIcon = LoadIcon(hInstance, MAKEINTRESOURCE("images/icon.ico"));
         SendMessage(hWnd, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
         SendMessage(hWnd, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
