@@ -19,9 +19,6 @@ WindowInfo Activity::getActiveWindow(){
             QString appPath = QString::fromWCharArray(app_path).trimmed();
             QFileInfo appFileInfo(appPath);
             QString fileName = appFileInfo.baseName();
-            if(fileName.isEmpty()){
-                fileName = "Unknown App";
-            }
             windowInfo.setProcessName(fileName);
         }
 
@@ -40,12 +37,4 @@ int Activity::getSystemIdleTime(){
     lastInputInfo.cbSize = sizeof(lastInputInfo);
     GetLastInputInfo(&lastInputInfo);
     return (GetTickCount() - lastInputInfo.dwTime) / 1000;
-}
-
-void Activity::setIcon(){
-    HINSTANCE hInstance = (HINSTANCE)::GetModuleHandle(NULL);
-    HWND hWnd = GetForegroundWindow();
-    HICON hIcon = LoadIcon(hInstance, MAKEINTRESOURCE("images/icon.ico"));
-    SendMessage(hWnd, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
-    SendMessage(hWnd, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
 }

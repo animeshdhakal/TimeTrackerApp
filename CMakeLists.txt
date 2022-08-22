@@ -37,6 +37,8 @@ set(PROJECT_SOURCES
     src/notification/notification.h
     src/updatechecker/updatechecker.cpp
     src/updatechecker/updatechecker.h
+    src/guard/RunGuard.h
+    src/guard/RunGuard.cpp
     src/definations.h
 )
 

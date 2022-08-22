@@ -102,7 +102,3 @@ int Activity::getSystemIdleTime()
     XCloseDisplay(display); 
     return idleTime;
 }
-
-void Activity::setIcon(){
-
-}

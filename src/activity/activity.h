@@ -7,6 +7,5 @@
 namespace Activity {
     WindowInfo getActiveWindow();
     int getSystemIdleTime();
-    void setIcon();
 }
 #endif

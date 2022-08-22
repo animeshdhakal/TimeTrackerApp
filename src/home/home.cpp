@@ -5,6 +5,8 @@ Home::Home(Store &store, QWidget *parent) : QMainWindow(parent),
                                             ui(new Ui::Home), store(store), secondsTime(QTime(0, 0)), activity(0), screenshotInterval(0), trayIcon(nullptr)
 {
     ui->setupUi(this);
+
+    ui->timer_button->setDisabled(true);
     
     createSystemTray();
 
@@ -24,7 +26,13 @@ Home::Home(Store &store, QWidget *parent) : QMainWindow(parent),
         {
             QJsonObject app = apps[i].toObject();
 
-            if(app.value("name").toString() == windowInfo.getProcessName())
+            QString name = windowInfo.getProcessName();
+
+            if(name.isEmpty() || name.isNull()){
+                name = "Unknown App";
+            }
+
+            if(app.value("name").toString() == name)
             {
                 if(Activity::getSystemIdleTime() == 0){
                     app.insert("activity", app.value("activity").toInt() + 1);
@@ -38,7 +46,14 @@ Home::Home(Store &store, QWidget *parent) : QMainWindow(parent),
         if(!found)
         {
             QJsonObject app;
-            app.insert("name", windowInfo.getProcessName());
+
+            QString name = windowInfo.getProcessName();
+
+            if(name.isEmpty() || name.isNull()){
+                name = "Unknown App";
+            }
+
+            app.insert("name", name);
             app.insert("activity", Activity::getSystemIdleTime() == 0 ? 1 : 0);
             app.insert("time", 1);
             apps.append(app);
@@ -251,6 +266,7 @@ void Home::onAllProjectsResponse(QNetworkReply *reply)
     {
         QJsonArray jsonArray = jsonDocument.array();
         QJsonObject jsonObject;
+        
         for (int i = 0; i < jsonArray.size(); i++)
         {
             jsonObject = jsonArray.at(i).toObject();
@@ -400,20 +416,27 @@ void Home::onScreenshotTimeout()
     activityPart.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"activity\""));
     activityPart.setBody(QString::number(floor(((float)activity / (float)QTime(0, 0).secsTo(secondsTime)) * 100.0f)).toUtf8());
 
-    QScreen *screen = QGuiApplication::primaryScreen();
+    QList<QScreen*> screens = QGuiApplication::screens();
 
-    QPixmap pixmap = screen->grabWindow(0);
+    for(QScreen* screen : screens){
 
-    QBuffer *buffer = new QBuffer();
-    buffer->open(QIODevice::WriteOnly);
-    pixmap.save(buffer, "JPG", 50);
+        QPixmap pixmap = screen->grabWindow(0);
 
-    QHttpPart imagePart;
-    imagePart.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("image/jpeg"));
-    imagePart.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"image\"; filename=\"screenshot.jpg\""));
-    imagePart.setBody(buffer->data());
+        QBuffer *buffer = new QBuffer();
 
-    multiPart->append(imagePart);
+        buffer->open(QIODevice::WriteOnly);
+        pixmap.save(buffer, "JPG", 50);
+
+        QHttpPart imagePart;
+        imagePart.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("image/jpeg"));
+        imagePart.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"image\"; filename=\"screenshot.jpg\""));
+        imagePart.setBody(buffer->data());
+    
+        multiPart->append(imagePart);
+
+        buffer->setParent(multiPart);
+    }
+
     multiPart->append(projectIDPart);
     multiPart->append(activityPart);
 
@@ -422,8 +445,6 @@ void Home::onScreenshotTimeout()
     request.setUrl(QUrl(store.get("server").toString() + "/api/upload"));
 
     QObject::connect(&manager, &QNetworkAccessManager::finished, this, &Home::onScreenshotUploadResponse);
-
-    buffer->setParent(multiPart);
 
     QNetworkReply *reply = manager.post(request, multiPart);
 
